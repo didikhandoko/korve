@@ -58,8 +58,22 @@
   }
   .brand h1 { margin: 0; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
   .brand p { margin: 1px 0 0; font-size: 0.78rem; color: var(--ink-soft); }
+  .header-right {
+    display: flex; align-items: center; gap: 20px;
+    flex-wrap: wrap;
+  }
   .header-meta { text-align: right; font-size: 0.78rem; color: var(--ink-soft); }
-  @media (max-width: 540px) { .header-meta { text-align: left; width: 100%; } }
+  .header-link {
+    font-size: 0.85rem; font-weight: 600; color: var(--primary);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 7px; border: 1px solid var(--border-strong);
+    background: white; transition: all 120ms;
+  }
+  .header-link:hover { border-color: var(--primary); background: var(--primary-soft); }
+  @media (max-width: 540px) {
+    .header-right { width: 100%; justify-content: space-between; }
+    .header-meta { text-align: left; }
+  }
   .header-meta strong { color: var(--ink); font-weight: 600; }
 
   main { max-width: 1400px; margin: 0 auto; padding: 28px 32px 60px; }
@@ -364,12 +378,18 @@
         <p>Pemerintah Kabupaten Gunungkidul</p>
       </div>
     </div>
-    <a class="header-link" href="index.html">
-      Home
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-      </svg>
-    </a>
+    <div class="header-right">
+      <div class="header-meta">
+        <div>Periode: <strong id="periode">—</strong></div>
+        <div>Pembaruan: <span id="updated" class="mono">—</span></div>
+      </div>
+      <a class="header-link" href="index.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/>
+        </svg>
+        Beranda
+      </a>
+    </div>
   </div>
 </header>
 
@@ -484,7 +504,7 @@
 // =====================================================================
 // GANTI URL INI dengan URL Web App Apps Script Anda
 // =====================================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzIbdEqN5IO8DKPB1jh8VtHheXHNxj516V7ZstBgCCnzh86nezdcJJIOPF64XbC5LPQ5w/exec';
+const API_URL = 'https://script.google.com/macros/s/PASTE_DEPLOYMENT_ID_DI_SINI/exec';
 
 let DATA = null;
 
