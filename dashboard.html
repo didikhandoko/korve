@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Monitoring Korve · Pemkab Gunungkidul</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafbfc;
+    --surface: #ffffff;
+    --ink: #0f172a;
+    --ink-soft: #475569;
+    --muted: #94a3b8;
+    --border: #e8ecf1;
+    --border-strong: #cbd5e1;
+    --primary: #1e3a5f;
+    --primary-soft: #eef2f7;
+    --accent: #b45309;
+    --success: #166534;
+    --success-bg: #dcfce7;
+    --warn: #92400e;
+    --warn-bg: #fef3c7;
+    --danger: #991b1b;
+    --danger-bg: #fee2e2;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 24px 48px rgba(15, 23, 42, 0.18);
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+
+  /* Header */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+  }
+  .header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 8px; background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em;
+  }
+  .brand h1 { margin: 0; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+  .brand p { margin: 1px 0 0; font-size: 0.78rem; color: var(--ink-soft); }
+  .header-meta { text-align: right; font-size: 0.78rem; color: var(--ink-soft); }
+  @media (max-width: 540px) { .header-meta { text-align: left; width: 100%; } }
+  .header-meta strong { color: var(--ink); font-weight: 600; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 28px 32px 60px; }
+  @media (max-width: 640px) {
+    header { padding: 14px 16px; }
+    main { padding: 18px 16px 40px; }
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 980px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .stats { grid-template-columns: 1fr; } }
+
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--primary);
+  }
+  .stat.success::before { background: var(--success); }
+  .stat.warn::before { background: var(--accent); }
+  .stat.danger::before { background: var(--danger); }
+
+  .stat-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-soft); font-weight: 600;
+  }
+  .stat-value {
+    font-size: 2.2rem; font-weight: 800; margin-top: 8px; line-height: 1;
+    letter-spacing: -0.03em; color: var(--ink);
+  }
+  @media (max-width: 640px) {
+    .stat-value { font-size: 1.7rem; }
+    .stat { padding: 14px 16px; }
+  }
+  .stat-sub { font-size: 0.78rem; color: var(--muted); margin-top: 6px; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+  .card-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .card-head h2 { margin: 0; font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+  .card-head p { margin: 2px 0 0; font-size: 0.78rem; color: var(--ink-soft); }
+
+  /* Filter */
+  .filters {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+    background: #fcfcfd;
+  }
+  @media (max-width: 980px) { .filters { grid-template-columns: 1fr 1fr; } #btn-reset { grid-column: 1 / -1; } }
+  @media (max-width: 540px) { .filters { grid-template-columns: 1fr; } }
+
+  .field label {
+    display: block; font-size: 0.72rem; font-weight: 600;
+    color: var(--ink-soft); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .field input, .field select {
+    width: 100%; padding: 9px 11px; font-size: 0.85rem;
+    border: 1px solid var(--border-strong); border-radius: 7px;
+    background: white; font-family: inherit; color: var(--ink);
+    outline: none; transition: border-color 120ms, box-shadow 120ms;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+  }
+  .btn {
+    padding: 9px 16px; font-size: 0.85rem; font-weight: 600;
+    border-radius: 7px; border: 1px solid var(--border-strong);
+    background: white; color: var(--ink); cursor: pointer;
+    font-family: inherit; transition: all 120ms;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn.primary {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
+  .btn.primary:hover { background: #142a47; color: white; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+  thead th {
+    background: #f8fafc; padding: 11px 14px; text-align: left;
+    font-weight: 600; font-size: 0.72rem; color: var(--ink-soft);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 1;
+  }
+  tbody td {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr { transition: background 100ms; cursor: pointer; }
+  tbody tr:hover { background: #f8fafc; }
+  tbody tr:hover td.action .btn-action { background: var(--primary); color: white; border-color: var(--primary); }
+  td.opd-name { font-weight: 600; color: var(--ink); }
+  td.action { text-align: right; }
+  .btn-action {
+    padding: 5px 12px; font-size: 0.75rem; font-weight: 600;
+    border: 1px solid var(--border-strong); background: white;
+    border-radius: 6px; cursor: pointer; color: var(--ink-soft);
+    font-family: inherit; transition: all 120ms;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 99px;
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.01em;
+    border: 1px solid transparent;
+  }
+  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .badge.lengkap { background: var(--success-bg); color: var(--success); }
+  .badge.lengkap::before { background: var(--success); }
+  .badge.belum-lengkap { background: var(--warn-bg); color: var(--warn); }
+  .badge.belum-lengkap::before { background: var(--accent); }
+
+  /* Empty / loading state */
+  .state {
+    padding: 60px 20px; text-align: center; color: var(--muted); font-size: 0.9rem;
+  }
+  .state.error { color: var(--danger); }
+
+  .card-foot {
+    padding: 12px 22px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.78rem; color: var(--ink-soft); gap: 12px; flex-wrap: wrap;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    display: none; align-items: flex-start; justify-content: center;
+    z-index: 100; padding: 40px 20px;
+    overflow-y: auto;
+  }
+  @media (max-width: 640px) { .modal-backdrop { padding: 12px; } }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 14px;
+    width: 100%; max-width: 880px;
+    box-shadow: var(--shadow-lg);
+    animation: pop 180ms ease-out;
+  }
+  @keyframes pop {
+    from { transform: translateY(8px) scale(0.98); opacity: 0; }
+    to   { transform: translateY(0)  scale(1);    opacity: 1; }
+  }
+  .modal-head {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  }
+  .modal-head h3 { margin: 0 0 4px; font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+  .modal-head .sub { font-size: 0.8rem; color: var(--ink-soft); }
+  @media (max-width: 640px) {
+    .modal-head { padding: 16px 18px; }
+    .modal-body { padding: 16px 18px 20px !important; }
+    .info-grid { padding: 12px 14px !important; gap: 10px 16px !important; }
+  }
+  .modal-close {
+    background: none; border: 0; cursor: pointer; padding: 4px;
+    color: var(--muted); font-size: 1.4rem; line-height: 1;
+    width: 32px; height: 32px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: #f1f5f9; color: var(--ink); }
+
+  .modal-body { padding: 22px 24px 26px; }
+  .info-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 14px 24px; margin-bottom: 22px;
+    padding: 16px 18px; background: var(--primary-soft); border-radius: 10px;
+  }
+  @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+  .info-item .k {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ink-soft); font-weight: 600; margin-bottom: 3px;
+  }
+  .info-item .v { font-size: 0.9rem; color: var(--ink); font-weight: 500; }
+
+  .media-section { margin-top: 18px; }
+  .media-section h4 {
+    margin: 0 0 10px; font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--ink-soft); font-weight: 600;
+  }
+  .media-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .media-grid.foto-grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 600px) { .media-grid, .media-grid.foto-grid { grid-template-columns: 1fr 1fr; } }
+  .media-card {
+    aspect-ratio: 4/3; border-radius: 10px; overflow: hidden;
+    position: relative; background: #f1f5f9; cursor: pointer;
+    border: 1px solid var(--border); display: block;
+  }
+  .media-card img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 200ms;
+  }
+  .media-card:hover img { transform: scale(1.04); }
+  .media-card .media-label {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 8px 12px; font-size: 0.72rem; font-weight: 600;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    color: white; letter-spacing: 0.03em;
+  }
+  .media-card.missing {
+    display: flex; align-items: center; justify-content: center;
+    background: repeating-linear-gradient(45deg, #f8fafc, #f8fafc 8px, #f1f5f9 8px, #f1f5f9 16px);
+    color: var(--muted); font-size: 0.78rem; cursor: default;
+  }
+  /* Document card untuk presensi */
+  .doc-card {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    flex-wrap: wrap;
+  }
+  .doc-card.missing {
+    background: repeating-linear-gradient(45deg, #fafbfc, #fafbfc 8px, #f1f5f9 8px, #f1f5f9 16px);
+    border-style: dashed;
+  }
+  .doc-icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    background: var(--primary-soft); color: var(--primary);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .doc-card.missing .doc-icon { background: #f1f5f9; color: var(--muted); }
+  .doc-info { flex: 1 1 160px; min-width: 0; }
+  .doc-title { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+  .doc-meta { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
+  .doc-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  @media (max-width: 420px) {
+    .doc-actions { width: 100%; }
+    .doc-actions .doc-btn { flex: 1; justify-content: center; }
+  }
+  .doc-btn { padding: 7px 14px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; }
+
+  /* WhatsApp link kontak */
+  .wa-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #15803d; text-decoration: none; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.86rem;
+    padding: 2px 8px; border-radius: 6px;
+    background: #f0fdf4; border: 1px solid #bbf7d0;
+    transition: all 120ms;
+  }
+  .wa-link:hover { background: #dcfce7; border-color: #86efac; }
+  .wa-link svg { flex-shrink: 0; }
+
+  .video-frame {
+    width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border); background: black;
+  }
+  .video-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+  footer {
+    text-align: center; padding: 28px 20px 10px;
+    color: var(--muted); font-size: 0.78rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-mark">GK</div>
+      <div>
+        <h1>Monitoring Kegiatan Korve</h1>
+        <p>Pemerintah Kabupaten Gunungkidul</p>
+      </div>
+    </div>
+    <a class="header-link" href="index.html">
+      Home
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ METRIK RINGKASAN ============ -->
+  <section class="stats" aria-label="Ringkasan">
+    <div class="stat">
+      <div class="stat-label">Total Kegiatan Bulan Ini</div>
+      <div class="stat-value" id="m-total">—</div>
+      <div class="stat-sub">laporan terkumpul</div>
+    </div>
+    <div class="stat success">
+      <div class="stat-label">Perangkat Daerah Sudah Lapor</div>
+      <div class="stat-value" id="m-sudah">—</div>
+      <div class="stat-sub" id="m-sudah-pct">—</div>
+    </div>
+    <div class="stat danger">
+      <div class="stat-label">Perangkat Daerah Belum Lapor</div>
+      <div class="stat-value" id="m-belum">—</div>
+      <div class="stat-sub" id="m-belum-pct">—</div>
+    </div>
+    <div class="stat warn">
+      <div class="stat-label">Total Perangkat Daerah</div>
+      <div class="stat-value" id="m-opd">—</div>
+      <div class="stat-sub">terdaftar di master list</div>
+    </div>
+  </section>
+
+  <!-- ============ TABEL UTAMA ============ -->
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Daftar Laporan Korve</h2>
+        <p>Klik baris atau tombol <em>Lihat Detail</em> untuk melihat bukti dukung.</p>
+      </div>
+      <button class="btn" id="btn-refresh">Muat Ulang</button>
+    </div>
+
+    <!-- Filter -->
+    <div class="filters">
+      <div class="field">
+        <label for="f-opd">Perangkat Daerah</label>
+        <select id="f-opd">
+          <option value="">Semua perangkat daerah</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-from">Pelaksanaan dari</label>
+        <input type="date" id="f-from" />
+      </div>
+      <div class="field">
+        <label for="f-to">Pelaksanaan sampai</label>
+        <input type="date" id="f-to" />
+      </div>
+      <div class="field">
+        <label for="f-status">Kelengkapan</label>
+        <select id="f-status">
+          <option value="">Semua</option>
+          <option value="lengkap">Lengkap</option>
+          <option value="belum-lengkap">Belum Lengkap</option>
+        </select>
+      </div>
+      <button class="btn" id="btn-reset">Reset</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:48px">#</th>
+            <th>Perangkat Daerah</th>
+            <th>Pelaksanaan</th>
+            <th>Lokasi</th>
+            <th>Pengupload</th>
+            <th>Status</th>
+            <th style="text-align:right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="7" class="state">Memuat data…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-foot">
+      <div id="result-count">—</div>
+      <div>Data bersumber dari Google Form · disinkronisasi otomatis</div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ MODAL GALERI ============ -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <div>
+        <h3 id="modal-title">—</h3>
+        <div class="sub" id="modal-sub">—</div>
+      </div>
+      <button class="modal-close" id="modal-close" aria-label="Tutup">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<footer>
+  © Diskominfo Gunungkidul · Dashboard Monitoring Korve
+</footer>
+
+<script>
+// =====================================================================
+// GANTI URL INI dengan URL Web App Apps Script Anda
+// =====================================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbzIbdEqN5IO8DKPB1jh8VtHheXHNxj516V7ZstBgCCnzh86nezdcJJIOPF64XbC5LPQ5w/exec';
+
+let DATA = null;
+
+const $ = id => document.getElementById(id);
+
+async function load(forceRefresh = false) {
+  $('tbody').innerHTML = '<tr><td colspan="7" class="state">Memuat data…</td></tr>';
+  try {
+    const url = API_URL + '?action=dashboard' + (forceRefresh ? '&refresh=1' : '');
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    DATA = json;
+    initFilters();
+    renderRingkasan();
+    renderTable();
+  } catch (err) {
+    $('tbody').innerHTML = '<tr><td colspan="7" class="state error">Gagal memuat data: ' + escapeHtml(err.message) + '</td></tr>';
+  }
+}
+
+function renderRingkasan() {
+  const r = DATA.ringkasan;
+  $('m-total').textContent = r.total_laporan_bulan_ini;
+  $('m-sudah').textContent = r.opd_sudah_lapor;
+  $('m-belum').textContent = r.opd_belum_lapor;
+  $('m-opd').textContent   = r.total_opd;
+
+  const pctSudah = r.total_opd ? Math.round(r.opd_sudah_lapor / r.total_opd * 100) : 0;
+  const pctBelum = 100 - pctSudah;
+  $('m-sudah-pct').textContent = pctSudah + '% dari total perangkat daerah';
+  $('m-belum-pct').textContent = pctBelum + '% belum berpartisipasi';
+
+  $('periode').textContent = namaBulan(r.periode.bulan) + ' ' + r.periode.tahun;
+  $('updated').textContent = new Date(r.updated_at).toLocaleString('id-ID', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function initFilters() {
+  const sel = $('f-opd');
+  if (sel.options.length > 1) return; // sudah diisi
+  DATA.daftar_opd.slice().sort().forEach(nama => {
+    const opt = document.createElement('option');
+    opt.value = nama;
+    opt.textContent = nama;
+    sel.appendChild(opt);
+  });
+}
+
+function getFiltered() {
+  const opd = $('f-opd').value;
+  const from = $('f-from').value;
+  const to = $('f-to').value;
+  const status = $('f-status').value;
+
+  return DATA.laporan.filter(r => {
+    if (opd && r.namaOPD !== opd) return false;
+    if (status === 'lengkap' && !r.lengkap) return false;
+    if (status === 'belum-lengkap' && r.lengkap) return false;
+
+    const tgl = r.pelaksanaan; // YYYY-MM-DD
+    if (from && tgl && tgl < from) return false;
+    if (to && tgl && tgl > to) return false;
+    return true;
+  });
+}
+
+function renderTable() {
+  const rows = getFiltered();
+  $('result-count').textContent = rows.length + ' laporan ditampilkan dari ' + DATA.laporan.length + ' total';
+
+  if (!rows.length) {
+    $('tbody').innerHTML = '<tr><td colspan="7" class="state">Tidak ada laporan yang cocok dengan filter.</td></tr>';
+    return;
+  }
+
+  $('tbody').innerHTML = rows.map((r, i) => {
+    const badge = r.lengkap
+      ? '<span class="badge lengkap">Lengkap</span>'
+      : '<span class="badge belum-lengkap">Belum Lengkap</span>';
+    return `<tr data-id="${r.id}">
+      <td class="mono">${i + 1}</td>
+      <td class="opd-name">${escapeHtml(r.namaOPD)}</td>
+      <td class="mono">${formatTanggal(r.pelaksanaan)}</td>
+      <td>${escapeHtml(r.lokasi || '—')}</td>
+      <td>${escapeHtml(r.pengupload || '—')}</td>
+      <td>${badge}</td>
+      <td class="action"><button class="btn-action">Lihat Detail</button></td>
+    </tr>`;
+  }).join('');
+
+  // bind klik
+  $('tbody').querySelectorAll('tr[data-id]').forEach(tr => {
+    tr.addEventListener('click', () => openModal(parseInt(tr.dataset.id, 10)));
+  });
+}
+
+function openModal(id) {
+  const r = DATA.laporan.find(x => x.id === id);
+  if (!r) return;
+
+  $('modal-title').textContent = r.namaOPD;
+  $('modal-sub').textContent = 'Pelaksanaan ' + formatTanggal(r.pelaksanaan, true) +
+    (r.lokasi ? ' · ' + r.lokasi : '');
+
+  const info = `
+    <div class="info-grid">
+      <div class="info-item"><div class="k">Tanggal Pelaksanaan</div><div class="v">${formatTanggal(r.pelaksanaan, true)}</div></div>
+      <div class="info-item"><div class="k">Lokasi Kegiatan</div><div class="v">${escapeHtml(r.lokasi || '—')}</div></div>
+      <div class="info-item"><div class="k">Pengupload</div><div class="v">${escapeHtml(r.pengupload || '—')}</div></div>
+      <div class="info-item"><div class="k">Kontak</div><div class="v">${renderKontak(r.kontak)}</div></div>
+      <div class="info-item"><div class="k">Status Kelengkapan</div><div class="v">${r.lengkap ? '<span class="badge lengkap">Lengkap</span>' : '<span class="badge belum-lengkap">Belum Lengkap</span>'}</div></div>
+      <div class="info-item"><div class="k">Waktu Submit</div><div class="v mono">${r.timestamp ? new Date(r.timestamp).toLocaleString('id-ID') : '—'}</div></div>
+    </div>
+
+    <div class="media-section">
+      <h4>Dokumentasi Foto</h4>
+      <div class="media-grid foto-grid">
+        ${mediaCard(r.foto1, 'Foto 1')}
+        ${mediaCard(r.foto2, 'Foto 2')}
+      </div>
+    </div>
+
+    <div class="media-section">
+      <h4>Dokumen Presensi</h4>
+      ${presensiCard(r.presensi)}
+    </div>
+
+    <div class="media-section">
+      <h4>Konten Video</h4>
+      ${r.video && r.video.embed
+        ? `<div class="video-frame"><iframe src="${r.video.embed}" allow="autoplay" allowfullscreen></iframe></div>`
+        : `<div class="media-card missing" style="aspect-ratio:16/4">Video belum diunggah</div>`}
+    </div>
+  `;
+  $('modal-body').innerHTML = info;
+  $('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  $('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function mediaCard(media, label) {
+  if (!media || !media.thumb) {
+    return `<div class="media-card missing">${label}<br/>belum diunggah</div>`;
+  }
+  return `<a class="media-card" href="${media.url}" target="_blank" rel="noopener">
+    <img src="${media.thumb}" alt="${label}" loading="lazy" onerror="this.parentElement.classList.add('missing');this.style.display='none';this.parentElement.innerHTML='${label}<br/>gagal dimuat (cek izin Drive)'"/>
+    <div class="media-label">${label}</div>
+  </a>`;
+}
+
+function presensiCard(media) {
+  if (!media || !media.id) {
+    return `<div class="doc-card missing">
+      <div class="doc-icon">—</div>
+      <div class="doc-info">
+        <div class="doc-title">Dokumen presensi</div>
+        <div class="doc-meta">Belum diunggah</div>
+      </div>
+    </div>`;
+  }
+  const viewUrl = media.url;
+  const downloadUrl = 'https://drive.google.com/uc?export=download&id=' + media.id;
+  return `<div class="doc-card">
+    <div class="doc-icon" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="9" y1="13" x2="15" y2="13"/>
+        <line x1="9" y1="17" x2="15" y2="17"/>
+      </svg>
+    </div>
+    <div class="doc-info">
+      <div class="doc-title">Dokumen presensi</div>
+      <div class="doc-meta">Tersimpan di Google Drive</div>
+    </div>
+    <div class="doc-actions">
+      <a class="btn doc-btn" href="${viewUrl}" target="_blank" rel="noopener">Buka</a>
+      <a class="btn primary doc-btn" href="${downloadUrl}" target="_blank" rel="noopener">Unduh</a>
+    </div>
+  </div>`;
+}
+
+function renderKontak(nomor) {
+  if (!nomor) return '—';
+  const display = formatKontakDisplay(nomor);
+  const waUrl = 'https://wa.me/' + nomor;
+  return `<a class="wa-link" href="${waUrl}" target="_blank" rel="noopener" title="Chat di WhatsApp">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.5.1-.2 0-.4 0-.5 0-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.3 5.2 4.6.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3z"/>
+      <path d="M21.1 4.9C18.9 2.7 15.9 1.5 12.8 1.5 6.4 1.5 1.2 6.7 1.2 13.1c0 2 .5 4 1.5 5.8L1.1 24l5.3-1.4c1.7.9 3.7 1.5 5.6 1.5h.1c6.4 0 11.6-5.2 11.6-11.6 0-3.1-1.2-6-3.4-8.2zm-8.3 17.8c-1.7 0-3.4-.5-4.9-1.4l-.3-.2-3.6 1 1-3.4-.2-.4c-1-1.6-1.5-3.4-1.5-5.2 0-5.3 4.3-9.6 9.6-9.6 2.6 0 5 1 6.8 2.8 1.8 1.8 2.8 4.2 2.8 6.8 0 5.3-4.3 9.6-9.7 9.6z"/>
+    </svg>
+    ${escapeHtml(display)}
+  </a>`;
+}
+
+function formatKontakDisplay(nomor) {
+  // 6285802878517 -> +62 858-0287-8517
+  if (!nomor) return '';
+  if (nomor.startsWith('62')) {
+    const rest = nomor.slice(2);
+    // pecah jadi grup 3-4-4 atau 3-4-(sisa)
+    const a = rest.slice(0, 3);
+    const b = rest.slice(3, 7);
+    const c = rest.slice(7);
+    return '+62 ' + [a, b, c].filter(Boolean).join('-');
+  }
+  return nomor;
+}
+
+function formatTanggal(s, long = false) {
+  if (!s) return '—';
+  // s = YYYY-MM-DD
+  const parts = s.split('-');
+  if (parts.length !== 3) return s;
+  const d = new Date(parts[0], parts[1] - 1, parts[2]);
+  if (long) {
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function namaBulan(n) {
+  return ['Januari','Februari','Maret','April','Mei','Juni',
+          'Juli','Agustus','September','Oktober','November','Desember'][n - 1];
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Event bindings
+['f-opd','f-from','f-to','f-status'].forEach(id => $(id).addEventListener('change', renderTable));
+$('btn-reset').addEventListener('click', () => {
+  ['f-opd','f-from','f-to','f-status'].forEach(id => $(id).value = '');
+  renderTable();
+});
+$('btn-refresh').addEventListener('click', () => load(true));
+$('modal-close').addEventListener('click', closeModal);
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+load();
+</script>
+</body>
+</html>
