@@ -541,7 +541,7 @@
 </div>
 
 <footer>
-  © Diskominfo Gunungkidul · Dashboard Monitoring Korve · DHN
+  © Diskominfo Gunungkidul · Dashboard Monitoring Korve · DHN 
 </footer>
 
 <script>
@@ -559,13 +559,36 @@ async function load(forceRefresh = false) {
   try {
     const url = API_URL + '?action=dashboard' + (forceRefresh ? '&refresh=1' : '');
     const res = await fetch(url);
-    const json = await res.json();
-    if (json.error) throw new Error(json.error);
+
+    // Cek content-type — kalau bukan JSON, kemungkinan dapat HTML login Google
+    const ct = res.headers.get('content-type') || '';
+    const text = await res.text();
+    if (!ct.includes('json')) {
+      throw new Error('Respons bukan JSON (' + ct + '). Cek setting Deploy Apps Script — "Who has access" harus "Anyone".');
+    }
+
+    let json;
+    try { json = JSON.parse(text); }
+    catch (e) { throw new Error('Respons tidak bisa di-parse sebagai JSON. Awal isi: ' + text.slice(0, 100)); }
+
+    if (json.error) throw new Error('Server: ' + json.error);
+
+    // Validasi struktur — pastikan field yang kita butuhkan ada
+    const required = ['ringkasan', 'laporan', 'daftar_opd'];
+    const missing = required.filter(k => !json[k]);
+    if (missing.length) {
+      throw new Error('Field hilang dari respons: ' + missing.join(', ') + '. Pastikan Code.gs sudah versi terbaru dan ter-deploy ulang.');
+    }
+    if (!json.ringkasan.periode) {
+      throw new Error('ringkasan.periode tidak ada. Re-deploy Code.gs sebagai versi baru.');
+    }
+
     DATA = json;
     initFilters();
     renderRingkasan();
     renderTable();
   } catch (err) {
+    console.error('Load error:', err);
     $('tbody').innerHTML = '<tr><td colspan="7" class="state error">Gagal memuat data: ' + escapeHtml(err.message) + '</td></tr>';
   }
 }
