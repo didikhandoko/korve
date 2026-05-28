@@ -227,6 +227,41 @@
     display: flex; justify-content: space-between; align-items: center;
     font-size: 0.78rem; color: var(--ink-soft); gap: 12px; flex-wrap: wrap;
   }
+  .card-credit { margin-left: auto; }
+  @media (max-width: 720px) {
+    .card-foot { justify-content: center; text-align: center; }
+    .card-credit { margin-left: 0; flex-basis: 100%; order: 3; }
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .pagination[hidden] { display: none; }
+  .page-list { display: flex; gap: 4px; }
+  .page-btn {
+    min-width: 32px; height: 32px; padding: 0 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border-strong); background: white;
+    border-radius: 6px; cursor: pointer;
+    font-family: inherit; font-size: 0.82rem; font-weight: 600;
+    color: var(--ink); transition: all 120ms;
+  }
+  .page-btn:hover:not(:disabled):not(.active) {
+    border-color: var(--primary); color: var(--primary);
+  }
+  .page-btn:disabled {
+    opacity: 0.4; cursor: not-allowed;
+  }
+  .page-btn.active {
+    background: var(--primary); color: white; border-color: var(--primary);
+    cursor: default;
+  }
+  .page-ellipsis {
+    min-width: 24px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 0.85rem;
+  }
 
   /* Modal */
   .modal-backdrop {
@@ -477,7 +512,16 @@
 
     <div class="card-foot">
       <div id="result-count">—</div>
-      <div>Data bersumber dari Google Form · disinkronisasi otomatis</div>
+      <div class="pagination" id="pagination" aria-label="Navigasi halaman">
+        <button class="page-btn" id="pg-prev" aria-label="Halaman sebelumnya" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="page-list" id="pg-list"></div>
+        <button class="page-btn" id="pg-next" aria-label="Halaman berikutnya" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="card-credit">Data bersumber dari Google Form · disinkronisasi otomatis</div>
     </div>
   </section>
 </main>
@@ -497,12 +541,14 @@
 </div>
 
 <footer>
-  © Diskominfo Gunungkidul · Dashboard Monitoring Korve
+  © Diskominfo Gunungkidul · Dashboard Monitoring Korve · DHN
 </footer>
 
 <script>
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbzIbdEqN5IO8DKPB1jh8VtHheXHNxj516V7ZstBgCCnzh86nezdcJJIOPF64XbC5LPQ5w/exec';
+// =====================================================================
+// GANTI URL INI dengan URL Web App Apps Script Anda
+// =====================================================================
+const API_URL = 'https://script.google.com/macros/s/PASTE_DEPLOYMENT_ID_DI_SINI/exec';
 
 let DATA = null;
 
@@ -571,21 +617,39 @@ function getFiltered() {
   });
 }
 
+const PAGE_SIZE = 5;
+let currentPage = 1;
+
 function renderTable() {
   const rows = getFiltered();
-  $('result-count').textContent = rows.length + ' laporan ditampilkan dari ' + DATA.laporan.length + ' total';
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  if (!rows.length) {
+  // Pastikan currentPage valid (mis. setelah filter mengecilkan hasil)
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  if (!total) {
+    $('result-count').textContent = '0 laporan · dari ' + DATA.laporan.length + ' total';
     $('tbody').innerHTML = '<tr><td colspan="7" class="state">Tidak ada laporan yang cocok dengan filter.</td></tr>';
+    renderPagination(0, 1);
     return;
   }
 
-  $('tbody').innerHTML = rows.map((r, i) => {
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const endIdx = Math.min(startIdx + PAGE_SIZE, total);
+  const pageRows = rows.slice(startIdx, endIdx);
+
+  $('result-count').textContent =
+    'Menampilkan ' + (startIdx + 1) + '–' + endIdx + ' dari ' + total +
+    ' laporan' + (total !== DATA.laporan.length ? ' (filter aktif)' : '');
+
+  $('tbody').innerHTML = pageRows.map((r, i) => {
     const badge = r.lengkap
       ? '<span class="badge lengkap">Lengkap</span>'
       : '<span class="badge belum-lengkap">Belum Lengkap</span>';
     return `<tr data-id="${r.id}">
-      <td class="mono">${i + 1}</td>
+      <td class="mono">${startIdx + i + 1}</td>
       <td class="opd-name">${escapeHtml(r.namaOPD)}</td>
       <td class="mono">${formatTanggal(r.pelaksanaan)}</td>
       <td>${escapeHtml(r.lokasi || '—')}</td>
@@ -595,10 +659,56 @@ function renderTable() {
     </tr>`;
   }).join('');
 
-  // bind klik
   $('tbody').querySelectorAll('tr[data-id]').forEach(tr => {
     tr.addEventListener('click', () => openModal(parseInt(tr.dataset.id, 10)));
   });
+
+  renderPagination(total, totalPages);
+}
+
+function renderPagination(total, totalPages) {
+  const pag = $('pagination');
+  if (total <= PAGE_SIZE) {
+    pag.hidden = true;
+    return;
+  }
+  pag.hidden = false;
+
+  $('pg-prev').disabled = currentPage <= 1;
+  $('pg-next').disabled = currentPage >= totalPages;
+
+  // Susun nomor halaman dengan ellipsis kalau totalPages besar:
+  // [1] ... [cur-1] [cur] [cur+1] ... [last]
+  const pages = [];
+  const push = v => pages.push(v);
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) push(i);
+  } else {
+    push(1);
+    if (currentPage > 3) push('…');
+    const from = Math.max(2, currentPage - 1);
+    const to = Math.min(totalPages - 1, currentPage + 1);
+    for (let i = from; i <= to; i++) push(i);
+    if (currentPage < totalPages - 2) push('…');
+    push(totalPages);
+  }
+
+  $('pg-list').innerHTML = pages.map(p => {
+    if (p === '…') return '<span class="page-ellipsis">…</span>';
+    const cls = p === currentPage ? 'page-btn active' : 'page-btn';
+    return `<button class="${cls}" data-page="${p}" ${p === currentPage ? 'aria-current="page"' : ''}>${p}</button>`;
+  }).join('');
+
+  $('pg-list').querySelectorAll('button[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => goToPage(parseInt(btn.dataset.page, 10)));
+  });
+}
+
+function goToPage(p) {
+  currentPage = p;
+  renderTable();
+  // scroll tabel ke atas supaya user lihat baris pertama halaman baru
+  document.querySelector('.table-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function openModal(id) {
@@ -741,12 +851,18 @@ function escapeHtml(s) {
 }
 
 // Event bindings
-['f-opd','f-from','f-to','f-status'].forEach(id => $(id).addEventListener('change', renderTable));
+['f-opd','f-from','f-to','f-status'].forEach(id => $(id).addEventListener('change', () => {
+  currentPage = 1; // reset ke halaman 1 setiap filter berubah
+  renderTable();
+}));
 $('btn-reset').addEventListener('click', () => {
   ['f-opd','f-from','f-to','f-status'].forEach(id => $(id).value = '');
+  currentPage = 1;
   renderTable();
 });
 $('btn-refresh').addEventListener('click', () => load(true));
+$('pg-prev').addEventListener('click', () => { if (currentPage > 1) goToPage(currentPage - 1); });
+$('pg-next').addEventListener('click', () => goToPage(currentPage + 1));
 $('modal-close').addEventListener('click', closeModal);
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
